@@ -1,0 +1,237 @@
+#!/usr/bin/env ruby
+
+require 'fuzzycd'
+
+Fuzzycd::Cli.new(*ARGV).run
+true
+
+# require 'tty'
+#
+# class Store
+#   CMD = TTY::Command.new(printer: :null)
+#
+#   attr_accessor :current_directory, :current_input, :cursor_location, :ls
+#
+#   def initialize
+#     @current_directory = pwd
+#     @current_input = @current_directory.clone
+#     @cursor_location = @current_input.length + 1
+#     @ls = []
+#   end
+#
+#   def pwd
+#     result, err = CMD.run('pwd')
+#     throw err unless err.empty?
+#     result.delete!("\n")
+#   end
+#
+#   def go_up_directory
+#     index = @current_directory.rindex('/')
+#     # @current = @current.first(index)
+#     # Drop the string after last '/'
+#     @current_directory = @current_directory.chars.first(index).join('')
+#     @current_input = @current_directory.clone
+#     @cursor_location = @current_input.length + 1
+#   end
+#
+#   def go_into_directory(name)
+#     @current_directory = @current_directory + '/' + name
+#     @current_input = @current_directory.clone
+#     @cursor_location = @current_input.length + 1
+#     @ls = []
+#   end
+#
+#   def set_ls(ls)
+#     @ls = ls
+#   end
+#
+#   def dispatch(action)
+#     if action == 'BACKSPACE'
+#       if @current_input.chars.last == '/'
+#         self.go_up_directory
+#       else
+#         @current_input.chop!
+#       end
+#     # elsif action == 'UP ARROW'
+#     #   self.go_up_directory
+#     elsif action == 'TAB'
+#       index = @current_input.rindex('/')
+#       current_name = @current_input.chars.last(@current_input.length - index - 1).join('')
+#       matches = []
+#       @ls.each do |name|
+#         if name.include?(current_name)
+#           matches << name.delete('/').delete("\n")
+#         end
+#       end
+#       # Only one match
+#       if matches.length == 1
+#         self.go_into_directory(matches.first)
+#       end
+#     elsif action == '/*'
+#       index = @current_input.rindex('/')
+#       current_name = @current_input.chars.last(@current_input.length - index - 1).join('')
+#       self.go_into_directory(current_name)
+#     else
+#       @current_input += action
+#     end
+#     @cursor_location = @current_input.length + 1
+#   end
+# end
+#
+# class Screen
+#   SCREEN = TTY::Screen.new
+#   WIDTH = SCREEN.width
+#   HEIGHT = SCREEN.height
+#   CMD = TTY::Command.new(printer: :null)
+#   CURSOR = TTY::Cursor
+#   PASTEL = Pastel.new
+#   TEXT_COLOR = :black
+#   SELECT_COLOR = :on_white
+#   attr_accessor :store
+#
+#   def initialize(store)
+#     @store = store
+#   end
+#
+#   def setup_screen
+#     system('clear')
+#   end
+#
+#   def clear_screen
+#     print CURSOR.row(0)
+#     HEIGHT.times do
+#       print CURSOR.clear_line
+#       print CURSOR.next_line
+#     end
+#     print CURSOR.row(0)
+#   end
+#
+#   # def print_current(directory, current_input = '')
+#   def print_current(current_input = '')
+#     current_string = "> #{@store.current_input}"
+#     print CURSOR.row(1)
+#     print CURSOR.column(0)
+#     print current_string
+#     # print CURSOR.next_line
+#   end
+#
+#   def print_ls
+#     output, err = CMD.run('ls -aF', chdir: @store.current_directory)
+#     #output, err = CMD.run('ls -a', chdir: '.')
+#     throw err unless err.empty?
+#     print CURSOR.row(2)
+#     print CURSOR.column(0)
+#     @store.set_ls(output.lines)
+#     if output.lines.count > HEIGHT - 4
+#       print output.lines[0..(HEIGHT - 4)].join
+#     else
+#       print output
+#     end
+#   end
+#
+#   def set_cursor(current_input)
+#     # current_string = "> #{@store.current_input}"
+#     print CURSOR.row(0)
+#     # print CURSOR.column(current_string.length + 1)
+#     print CURSOR.column(@store.cursor_location + 2)
+#   end
+# end
+#
+# class Input
+#   def self.read_input
+#     STDIN.echo = false
+#     STDIN.raw!
+#     input = STDIN.getc.chr
+#     if input == "\e" then
+#       input << STDIN.read_nonblock(3) rescue nil
+#       input << STDIN.read_nonblock(2) rescue nil
+#     end
+#     STDIN.echo = true
+#     STDIN.cooked!
+#     input
+#   end
+#
+#   def self.process_input(input)
+#     case input
+#     when " "
+#       return "SPACE"
+#     when "\t"
+#       return "TAB"
+#     when "\r"
+#       return "RETURN"
+#     when "\n"
+#       return "LINE FEED"
+#     when "\e"
+#       return "ESCAPE"
+#     when "\e[A"
+#       return "UP ARROW"
+#     when "\e[B"
+#       return "DOWN ARROW"
+#     when "\e[C"
+#       return "RIGHT ARROW"
+#     when "\e[D"
+#       return "LEFT ARROW"
+#     when "\177"
+#       return "BACKSPACE"
+#     when "\004"
+#       return "DELETE"
+#     when "\e[3~"
+#       return "ALTERNATE DELETE"
+#     when "\u0003"
+#       # exit 0
+#       return "CONTROL-C"
+#     when /^.$/
+#       # return "SINGLE CHAR HIT: #{input.inspect}"
+#       return input
+#     else
+#       return "SOMETHING ELSE: #{input.inspect}"
+#     end
+#   end
+# end
+#
+# def main
+#   store = Store.new
+#   screen = Screen.new(store)
+#
+#   screen.setup_screen
+#   screen.clear_screen
+#
+#   # screen.print_current_directory(directory)
+#   # screen.print_ls(directory)
+#   screen.print_current
+#   screen.print_ls
+#
+#   #puts PASTEL.blue('test')
+#   # puts PASTEL.decorate('test', :blue, :on_white, :underline)
+#
+#   #puts PASTEL.decorate('test', TEXT_COLOR, SELECT_COLOR, :underline)
+#   #puts PASTEL.decorate('test', :inverse, :underline)
+#
+#   action = ''
+#   current_input = ''
+#   while action != 'CONTROL-C'
+#     screen.clear_screen
+#     # screen.print_current(directory, current_input)
+#     # screen.print_ls(directory)
+#     # screen.set_cursor(directory, current_input)
+#     screen.print_current(current_input)
+#     screen.print_ls
+#     screen.set_cursor(current_input)
+#     action = Input.process_input(Input.read_input)
+#     if action == 'CONTROL-C'
+#       screen.clear_screen
+#     else
+#       store.dispatch(action)
+#       # current_input += action
+#     end
+#   end
+# end
+#
+# if __FILE__ == $0
+#   begin
+#     main
+#   rescue StandardError => e
+#     puts "#{e.class}: #{e.message}\n#{e.backtrace.join("\n")}"
+#     exit(1)
+#   end
+# end
